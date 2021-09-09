@@ -6,7 +6,7 @@ plugins {
 
 group 'ink.ikx.cfp'
 version '1.0-SNAPSHOT'
-mainClassName = 'ink.ikx.cfp.CurseForgePlugin'
+mainClassName = 'ink.ikx.cfp.Main'
 
 repositories {
     mavenCentral()
@@ -19,7 +19,10 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.5'
 
     compileOnly 'org.projectlombok:lombok:1.18.20'
+    annotationProcessor 'org.projectlombok:lombok:1.18.20'
 
+    testCompileOnly 'org.projectlombok:lombok:1.18.20'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.20'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
 }
