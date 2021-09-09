@@ -1,1 +1,1 @@
-# CurseForge-Plguin
+# CurseForge-Plugin
