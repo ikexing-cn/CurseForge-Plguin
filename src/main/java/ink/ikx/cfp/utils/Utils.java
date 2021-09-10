@@ -16,4 +16,8 @@ public class Utils {
         return sb.toString();
     }
 
+    public static String singleWordToCamel(String str) {
+        String first = str.toLowerCase().substring(0, 1);
+        return str.toLowerCase().replace(first, first.toUpperCase());
+    }
 }

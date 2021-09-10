@@ -2,6 +2,7 @@
 package ink.ikx.cfp.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -45,6 +46,7 @@ public class Manifest implements Serializable {
         }
     }
 
+    @AllArgsConstructor
     @NoArgsConstructor
     @Data
     public static class FilesBean implements Serializable {

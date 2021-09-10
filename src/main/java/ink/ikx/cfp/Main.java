@@ -2,7 +2,6 @@ package ink.ikx.cfp;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.log.StaticLog;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ink.ikx.cfp.config.BaseConfig;
 import ink.ikx.cfp.entity.Manifest;
@@ -19,15 +18,14 @@ public class Main {
     @SneakyThrows
     public static void main(String[] args) {
         ObjectMapper om = new ObjectMapper();
-        if (FileUtil.isEmpty(FileUtil.newFile(DEFAULT_MANIFEST_FILE))) {
+        if (FileUtil.isNotEmpty(FileUtil.newFile(DEFAULT_MANIFEST_FILE))) {
+            manifest = om.readValue(FileUtil.newFile(DEFAULT_MANIFEST_FILE), Manifest.class);
+        } else {
             if (!StrUtil.isBlank(BaseConfig.INSTANCE.getManifest())) {
                 manifest = om.readValue(BaseConfig.INSTANCE.getManifest(), Manifest.class);
             }
-            StaticLog.info("Manifest.json not found.");
-        } else {
-            manifest = om.readValue(FileUtil.newFile(DEFAULT_MANIFEST_FILE), Manifest.class);
         }
-        System.out.println(manifest.getMinecraft().getVersion());
-    }
 
+        BaseConfig.INSTANCE.execute();
+    }
 }
