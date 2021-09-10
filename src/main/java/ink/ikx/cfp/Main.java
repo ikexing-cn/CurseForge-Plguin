@@ -1,7 +1,6 @@
 package ink.ikx.cfp;
 
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ink.ikx.cfp.config.BaseConfig;
 import ink.ikx.cfp.entity.Manifest;
@@ -18,14 +17,7 @@ public class Main {
     @SneakyThrows
     public static void main(String[] args) {
         ObjectMapper om = new ObjectMapper();
-        if (FileUtil.isNotEmpty(FileUtil.newFile(DEFAULT_MANIFEST_FILE))) {
-            manifest = om.readValue(FileUtil.newFile(DEFAULT_MANIFEST_FILE), Manifest.class);
-        } else {
-            if (!StrUtil.isBlank(BaseConfig.INSTANCE.getManifest())) {
-                manifest = om.readValue(BaseConfig.INSTANCE.getManifest(), Manifest.class);
-            }
-        }
-
+        manifest = om.readValue(FileUtil.newFile(BaseConfig.INSTANCE.getManifest()), Manifest.class);
         BaseConfig.INSTANCE.execute();
     }
 }

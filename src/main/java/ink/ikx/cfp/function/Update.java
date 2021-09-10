@@ -1,5 +1,6 @@
 package ink.ikx.cfp.function;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.log.StaticLog;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -8,6 +9,7 @@ import ink.ikx.cfp.Main;
 import ink.ikx.cfp.config.BaseConfig;
 import ink.ikx.cfp.entity.Files;
 import ink.ikx.cfp.entity.Manifest;
+import lombok.SneakyThrows;
 
 import java.text.MessageFormat;
 import java.util.Arrays;
@@ -63,6 +65,7 @@ public class Update {
         }
     }
 
+    @SneakyThrows
     public void updateMod() {
         if (UPDATED_FILES_LIST.isEmpty()) return;
         for (Map.Entry<String, Manifest.FilesBean> entry : UPDATED_FILES_LIST.entrySet()) {
@@ -75,5 +78,9 @@ public class Update {
                 StaticLog.info(entry.getKey() + " Updated");
             }
         }
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(MANIFEST);
+
+        FileUtil.writeUtf8String(json, BaseConfig.INSTANCE.getManifest());
     }
 }

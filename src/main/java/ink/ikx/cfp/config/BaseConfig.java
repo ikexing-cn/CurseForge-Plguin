@@ -2,6 +2,7 @@ package ink.ikx.cfp.config;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ReflectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.setting.dialect.Props;
 import ink.ikx.cfp.Main;
 import ink.ikx.cfp.utils.Utils;
@@ -50,7 +51,7 @@ public class BaseConfig {
     }
 
     public String getManifest() {
-        return props.getStr("Manifest");
+        return StrUtil.isBlank(props.getStr("Manifest")) ? Main.DEFAULT_MANIFEST_FILE : props.getStr("Manifest");
     }
 
     public String getFile() {
