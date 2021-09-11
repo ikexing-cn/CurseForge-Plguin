@@ -2,8 +2,6 @@ package ink.ikx.cfp.function;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.http.HttpUtil;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ink.ikx.cfp.Main;
 import ink.ikx.cfp.config.BaseConfig;
@@ -13,7 +11,6 @@ import ink.ikx.cfp.utils.Utils;
 import lombok.SneakyThrows;
 import lombok.val;
 
-import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,26 +21,29 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("unused")
-public class Update {
+public class Update extends BaseFunction {
 
-    public static final Manifest MANIFEST = Main.manifest;
     public static final Map<String, Manifest.FilesBean> UPDATED_FILES_LIST = new HashMap<>();
+
+    private static final CountDownLatch begin = new CountDownLatch(1);
+    private static final CountDownLatch end = new CountDownLatch(Main.manifest.getFiles().size());
 
     @SneakyThrows
     public Update() {
         Utils.infoLog("Update Start");
         long start = System.currentTimeMillis();
-        final CountDownLatch begin = new CountDownLatch(1);
-        final CountDownLatch end = new CountDownLatch(MANIFEST.getFiles().size());
+
         ExecutorService exec = Executors.newFixedThreadPool(BaseConfig.INSTANCE.getThreads());
 
-        for (var i = 0; i < MANIFEST.getFiles().size(); i++) {
-            Manifest.FilesBean file = MANIFEST.getFiles().get(i);
+        for (var i = 0; i < Main.manifest.getFiles().size(); i++) {
+            var file = Main.manifest.getFiles().get(i);
             int finalI = i;
             Runnable run = () -> {
                 try {
                     begin.await();
-                    call(file, finalI);
+                    var files = getFiles(file);
+                    if (Objects.isNull(files)) return;
+                    call(files, finalI, file);
                 } catch (InterruptedException ignored) {
                 } finally {
                     end.countDown();
@@ -57,24 +57,13 @@ public class Update {
         updateMod();
     }
 
-    public void call(Manifest.FilesBean file, int i) {
-
-        var s = HttpUtil.get(MessageFormat.format("https://addons-ecs.forgesvc.net/api/v2/addon/{0}/files",
-                file.getProjectID().toString()));
-        var om = new ObjectMapper();
-
-        Files[] files;
-        try {
-            files = om.readValue(s, Files[].class);
-        } catch (JsonProcessingException e) {
-            Utils.errorLog("This projectID " + file.getProjectID() + " Does Not Exist.", e);
-            return;
-        }
+    public void call(Files[] files, int i, Manifest.FilesBean file) {
         var skipList = BaseConfig.INSTANCE.getSkips().stream()
                 .filter(StrUtil::isNotBlank)
                 .filter(skip -> files[0].getDisplayName().toLowerCase().contains(skip))
                 .collect(Collectors.toList());
         if (!skipList.isEmpty()) return;
+
         Utils.infoLog("Check Mod Update, " + (i == 1 ? i + " Mod" : i + " Mods") + " Have Been Detected");
         getUpdated(file.getFileID(), file.getProjectID(), files);
     }
@@ -82,7 +71,7 @@ public class Update {
     public void getUpdated(Integer fileID, Integer projectID, Files[] files) {
         var file = Arrays.stream(files)
                 .sorted()
-                .filter(f -> f.getGameVersion().contains(MANIFEST.getMinecraft().getVersion()))
+                .filter(f -> f.getGameVersion().contains(Main.manifest.getMinecraft().getVersion()))
                 .findFirst().orElse(null);
 
         if (Objects.nonNull(file) && !Objects.equals(file.getId(), fileID)) {
@@ -97,20 +86,29 @@ public class Update {
             return;
         }
         int i = 0;
+        ExecutorService exec = Executors.newFixedThreadPool(BaseConfig.INSTANCE.getThreads());
         for (val entry : UPDATED_FILES_LIST.entrySet()) {
             var updatedFile = entry.getValue();
-            var flag = MANIFEST.getFiles().removeIf(file -> Objects.equals(file.getProjectID(), updatedFile.getProjectID()) && !Objects.equals(file.getFileID(), updatedFile.getFileID()));
+            var flag = Main.manifest.getFiles().removeIf(file -> Objects.equals(file.getProjectID(), updatedFile.getProjectID()) && !Objects.equals(file.getFileID(), updatedFile.getFileID()));
 
             if (flag) {
-                MANIFEST.getFiles().add(updatedFile);
-                Utils.infoLog("Update " + entry.getKey().split("-")[0] + "Mod to The Last Version"); //理论上应该没问题
+                Main.manifest.getFiles().add(updatedFile);
+                exec.submit(() -> {
+                    Files file = Arrays.stream(getFiles(updatedFile)).sorted().findFirst().orElse(null);
+
+                    Downloader.call(Objects.requireNonNull(file).getDownloadUrl());
+                    Utils.infoLog("Update " + entry.getKey().split("-")[0] + "Mod to The Last Version"); //理论上应该没问题
+                });
                 i++;
             }
         }
+
+        exec.shutdown();
+
         var objectMapper = new ObjectMapper();
-        var json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(MANIFEST);
+        var json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(Main.manifest);
 
         FileUtil.writeUtf8String(json, BaseConfig.INSTANCE.getManifest());
-        Utils.infoLog((i == 1 ? i + " Mod" : i + " Mods") + " Updated");
+        Utils.infoLog((i == 1 ? i + " Mod" : i + " Mods") + " Waiting Update");
     }
 }
