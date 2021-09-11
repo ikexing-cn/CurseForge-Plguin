@@ -69,6 +69,6 @@ public class BaseConfig {
     }
 
     public enum Type {
-        UPDATE, DOWNLOAD
+        UPDATE, DOWNLOADER
     }
 }

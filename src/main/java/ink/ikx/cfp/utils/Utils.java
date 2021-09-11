@@ -19,7 +19,7 @@ public class Utils {
 
     public static String singleWordToCamel(String str) {
         String first = str.toLowerCase().substring(0, 1);
-        return str.toLowerCase().replace(first, first.toUpperCase());
+        return first.toUpperCase() + str.substring(1).toLowerCase();
     }
 
     public static void infoLog(String str) {

@@ -104,7 +104,7 @@ public class Update {
             if (flag) {
                 Files file = Arrays.stream(this.files).filter(f -> Objects.equals(f.getId(), updatedFile.getFileID())).findFirst().orElse(null);
                 MANIFEST.getFiles().add(updatedFile);
-                Utils.infoLog("update" + entry.getKey());
+                Utils.infoLog("Update " + entry.getKey());
                 i++;
             }
         }
