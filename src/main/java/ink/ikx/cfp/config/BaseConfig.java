@@ -26,7 +26,9 @@ public class BaseConfig {
 
     public void initConfig() {
         props = new Props(getFile());
-        if (props.get("Type") == null) props.setProperty("Type", "Update");
+        if (props.get("Types") == null) props.setProperty("Types", "Update");
+        if (props.get("Skips") == null) props.setProperty("Skips", "");
+        if (props.get("Threads") == null) props.setProperty("Threads", 8);
 
         props.store(getFile());
         props.clone();
@@ -43,7 +45,7 @@ public class BaseConfig {
     }
 
     public void execute() {
-        ReflectUtil.newInstance("ink.ikx.cfp.function." + Utils.singleWordToCamel(getType().toString()));
+        getTypes().stream().map(t -> "ink.ikx.cfp.function." + Utils.singleWordToCamel(t.toString())).forEach(ReflectUtil::newInstance);
     }
 
     public List<String> getSkips() {
@@ -54,12 +56,16 @@ public class BaseConfig {
         return StrUtil.isBlank(props.getStr("Manifest")) ? Main.DEFAULT_MANIFEST_FILE : props.getStr("Manifest");
     }
 
+    public int getThreads() {
+        return props.getInt("Threads");
+    }
+
     public String getFile() {
         return Utils.getPath(Main.CONFIG_DIR, "base.setting");
     }
 
-    public Type getType() {
-        return Type.valueOf(props.getStr("Type").toUpperCase());
+    public List<Type> getTypes() {
+        return Arrays.stream(props.getStr("Types").split(",")).map(String::toUpperCase).map(Type::valueOf).collect(Collectors.toList());
     }
 
     public enum Type {

@@ -1,6 +1,7 @@
 package ink.ikx.cfp.utils;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.log.StaticLog;
 
 import java.io.File;
 
@@ -20,4 +21,13 @@ public class Utils {
         String first = str.toLowerCase().substring(0, 1);
         return str.toLowerCase().replace(first, first.toUpperCase());
     }
+
+    public static void infoLog(String str) {
+        StaticLog.info("[CurseForge - Plugin] " + str);
+    }
+
+    public static void errorLog(String str, Object... arguments) {
+        StaticLog.error("[CurseForge - Plugin] " + str, arguments);
+    }
+
 }
