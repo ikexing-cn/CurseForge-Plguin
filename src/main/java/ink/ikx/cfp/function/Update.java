@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 @SuppressWarnings("unused")
 public class Update {
 
-    private Files[] files;
     public static final Manifest MANIFEST = Main.manifest;
     public static final Map<String, Manifest.FilesBean> UPDATED_FILES_LIST = new HashMap<>();
 
@@ -62,8 +61,9 @@ public class Update {
 
         var s = HttpUtil.get(MessageFormat.format("https://addons-ecs.forgesvc.net/api/v2/addon/{0}/files",
                 file.getProjectID().toString()));
-        ObjectMapper om = new ObjectMapper();
+        var om = new ObjectMapper();
 
+        Files[] files;
         try {
             files = om.readValue(s, Files[].class);
         } catch (JsonProcessingException e) {
@@ -76,11 +76,11 @@ public class Update {
                 .collect(Collectors.toList());
         if (!skipList.isEmpty()) return;
         Utils.infoLog("Check Mod Update, " + (i == 1 ? i + " Mod" : i + " Mods") + " Have Been Detected");
-        getUpdated(file.getFileID(), file.getProjectID());
+        getUpdated(file.getFileID(), file.getProjectID(), files);
     }
 
-    public void getUpdated(Integer fileID, Integer projectID) {
-        var file = Arrays.stream(this.files)
+    public void getUpdated(Integer fileID, Integer projectID, Files[] files) {
+        var file = Arrays.stream(files)
                 .sorted()
                 .filter(f -> f.getGameVersion().contains(MANIFEST.getMinecraft().getVersion()))
                 .findFirst().orElse(null);
@@ -102,14 +102,13 @@ public class Update {
             var flag = MANIFEST.getFiles().removeIf(file -> Objects.equals(file.getProjectID(), updatedFile.getProjectID()) && !Objects.equals(file.getFileID(), updatedFile.getFileID()));
 
             if (flag) {
-                Files file = Arrays.stream(this.files).filter(f -> Objects.equals(f.getId(), updatedFile.getFileID())).findFirst().orElse(null);
                 MANIFEST.getFiles().add(updatedFile);
-                Utils.infoLog("Update " + entry.getKey());
+                Utils.infoLog("Update " + entry.getKey().split("-")[0] + "Mod to The Last Version"); //理论上应该没问题
                 i++;
             }
         }
-        ObjectMapper objectMapper = new ObjectMapper();
-        String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(MANIFEST);
+        var objectMapper = new ObjectMapper();
+        var json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(MANIFEST);
 
         FileUtil.writeUtf8String(json, BaseConfig.INSTANCE.getManifest());
         Utils.infoLog((i == 1 ? i + " Mod" : i + " Mods") + " Updated");
