@@ -10,12 +10,7 @@ public class Downloader extends BaseFunction {
     public static final String MODS = Utils.getPath(Main.CONFIG_DIR, "Mods");
 
     static {
-
         if (FileUtil.isEmpty(FileUtil.file(MODS))) FileUtil.mkdir(MODS);
-    }
-
-    public Downloader() {
-
     }
 
     public static void call(String url) {

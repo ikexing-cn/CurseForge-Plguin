@@ -25,15 +25,16 @@ public class Update extends BaseFunction {
 
     public static final Map<String, Manifest.FilesBean> UPDATED_FILES_LIST = new HashMap<>();
 
-    private static final CountDownLatch begin = new CountDownLatch(1);
-    private static final CountDownLatch end = new CountDownLatch(Main.manifest.getFiles().size());
+
 
     @SneakyThrows
     public Update() {
         Utils.infoLog("Update Start");
         long start = System.currentTimeMillis();
 
-        ExecutorService exec = Executors.newFixedThreadPool(BaseConfig.INSTANCE.getThreads());
+        var begin = new CountDownLatch(1);
+        var end = new CountDownLatch(Main.manifest.getFiles().size());
+        var exec = Executors.newFixedThreadPool(BaseConfig.INSTANCE.getThreads());
 
         for (var i = 0; i < Main.manifest.getFiles().size(); i++) {
             var file = Main.manifest.getFiles().get(i);
